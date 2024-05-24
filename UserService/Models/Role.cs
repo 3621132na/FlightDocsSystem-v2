@@ -1,8 +1,10 @@
 ﻿namespace UserService.Models
 {
-    public class Role
+    public enum Role
     {
-        public int RoleID { get; set; }
-        public string RoleName { get; set; }
+        Admin,
+        GO,
+        Pilot,
+        Crew
     }
 }
