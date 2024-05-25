@@ -79,7 +79,7 @@ namespace UserService.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("edit/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateUser(int id, User user)
         {
@@ -94,7 +94,7 @@ namespace UserService.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("delete/{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -125,7 +125,22 @@ namespace UserService.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
+        [HttpGet("detail/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetUserDetail(int id)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(id);
+                if (user == null)
+                    return NotFound(new { message = "User not found." });
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
         [HttpPost("forgotpassword")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)

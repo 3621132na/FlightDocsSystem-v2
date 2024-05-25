@@ -1,5 +1,7 @@
-﻿using FlightService.Models;
+﻿using FlightService.DTO;
+using FlightService.Models;
 using FlightService.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,16 +17,17 @@ namespace FlightService.Controllers
         {
             _flightService = flightService;
         }
-
+        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "GO")]
         [HttpGet]
-        public async Task<ActionResult<List<Flight>>> GetAllFlights()
+        public async Task<IActionResult> GetAllFlights()
         {
             var flights = await _flightService.GetAllFlightsAsync();
             return Ok(flights);
         }
-
+        [Authorize]
         [HttpGet("{id}")]
-        public async Task<ActionResult<Flight>> GetFlightById(int id)
+        public async Task<IActionResult> GetFlightById(int id)
         {
             var flight = await _flightService.GetFlightByIdAsync(id);
             if (flight == null)
@@ -33,40 +36,68 @@ namespace FlightService.Controllers
             }
             return Ok(flight);
         }
-
+        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "GO")]
         [HttpPost]
-        public async Task<ActionResult<Flight>> CreateFlight(Flight flight)
+        public async Task<IActionResult> CreateFlight(Flight flight)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var createdFlight = await _flightService.CreateFlightAsync(flight);
             return CreatedAtAction(nameof(GetFlightById), new { id = createdFlight.FlightID }, createdFlight);
         }
-
+        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "GO")]
         [HttpPut("{id}")]
-        public async Task<ActionResult<Flight>> UpdateFlight(int id, Flight flight)
+        public async Task<IActionResult> UpdateFlight(int id,Flight flight)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                var updatedFlight = await _flightService.UpdateFlightAsync(id, flight);
-                return Ok(updatedFlight);
+                return BadRequest(ModelState);
             }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
 
+            if (id != flight.FlightID)
+            {
+                return BadRequest();
+            }
+
+            var result = await _flightService.UpdateFlightAsync(flight);
+            if (result)
+            {
+                return NoContent();
+            }
+            return NotFound();
+        }
+        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "GO")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFlight(int id)
         {
-            try
+            var result = await _flightService.DeleteFlightAsync(id);
+            if (result)
             {
-                await _flightService.DeleteFlightAsync(id);
                 return NoContent();
             }
-            catch (Exception ex)
+            return NotFound();
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPost("addUserToFlight")]
+        public async Task<IActionResult> AddUserToFlight(UserFlight dto,string jwtToken)
+        {
+            if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ModelState);
             }
+
+            var result = await _flightService.AddUserToFlightAsync(dto.FlightID, dto.UserID, dto.Role,jwtToken);
+            if (result)
+            {
+                return Ok();
+            }
+            return BadRequest("Unable to add user to flight.");
         }
     }
 }
