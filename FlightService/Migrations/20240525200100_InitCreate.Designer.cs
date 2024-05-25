@@ -4,6 +4,7 @@ using FlightService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FlightService.Migrations
 {
     [DbContext(typeof(FlightContext))]
-    partial class FlightContextModelSnapshot : ModelSnapshot
+    [Migration("20240525200100_InitCreate")]
+    partial class InitCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,12 +41,14 @@ namespace FlightService.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("ArrivalAirportName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DepartureAirportID")
                         .HasColumnType("int");
 
                     b.Property<string>("DepartureAirportName")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("DepartureDate")
@@ -66,37 +70,64 @@ namespace FlightService.Migrations
                     b.ToTable("Flights");
                 });
 
-            modelBuilder.Entity("FlightService.Models.UserFlight", b =>
+            modelBuilder.Entity("UserService.Models.User", b =>
                 {
                     b.Property<int>("UserID")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("FlightID")
-                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"), 1L, 1);
 
-                    b.Property<string>("Role")
+                    b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("UserID", "FlightID");
+                    b.Property<int?>("FlightID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FlightID1")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserID");
 
                     b.HasIndex("FlightID");
 
-                    b.ToTable("UserFlights");
+                    b.HasIndex("FlightID1");
+
+                    b.ToTable("User");
                 });
 
-            modelBuilder.Entity("FlightService.Models.UserFlight", b =>
+            modelBuilder.Entity("UserService.Models.User", b =>
                 {
                     b.HasOne("FlightService.Models.Flight", null)
-                        .WithMany("Users")
-                        .HasForeignKey("FlightID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("Crew")
+                        .HasForeignKey("FlightID");
+
+                    b.HasOne("FlightService.Models.Flight", null)
+                        .WithMany("Pilots")
+                        .HasForeignKey("FlightID1");
                 });
 
             modelBuilder.Entity("FlightService.Models.Flight", b =>
                 {
-                    b.Navigation("Users");
+                    b.Navigation("Crew");
+
+                    b.Navigation("Pilots");
                 });
 #pragma warning restore 612, 618
         }
