@@ -3,6 +3,8 @@ using FlightService.Data;
 using FlightService.Models;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Data;
 using System.Net.Http.Headers;
 using System.Text;
 using UserService.Models;
@@ -37,9 +39,26 @@ namespace FlightService.Services
             return flight;
         }
 
-        public async Task<bool> UpdateFlightAsync(Flight flight)
+        public async Task<bool> UpdateFlightAsync(Flight flight, string jwtToken)
         {
             await PopulateAirportNamesAsync(flight);
+            if (flight.Status == "Đã hạ cánh")
+            {
+                var userFlights = await _dbContext.UserFlights
+                    .Where(uf => uf.FlightID == flight.FlightID)
+                    .ToListAsync();
+
+                foreach (var userFlight in userFlights)
+                {
+                    var userDetails = await GetUserDetailAsync(userFlight.UserID,jwtToken);
+                    if (userDetails != null)
+                    {
+                        var userUpdateResponse = await UpdateUserRoleInUserService(userFlight.UserID, null, jwtToken);
+                        if (!userUpdateResponse.IsSuccessStatusCode)
+                            return false;
+                    }
+                }
+            }
             _dbContext.Flights.Update(flight);
             return await _dbContext.SaveChangesAsync() > 0;
         }
@@ -68,26 +87,39 @@ namespace FlightService.Services
                 flight.ArrivalAirportName = arrivalAirport.AirportName;
             }
         }
-        public async Task<bool> AddUserToFlightAsync(int flightId, int userId,string role, string jwtToken)
+        public async Task<bool> AddUserToFlightAsync(int flightId, int userId, Role role, string jwtToken)
         {
             var flight = await _dbContext.Flights.Include(f => f.Users).FirstOrDefaultAsync(f => f.FlightID == flightId);
             if (flight == null) return false;
             if (flight.Users.Any(u => u.UserID == userId)) return true;
-            var userDto = await GetUserDetailAsync(userId,jwtToken);
+            var userDto = await GetUserDetailAsync(userId, jwtToken);
             if (userDto == null) return false;
-            var userFlight = new UserFlight { UserID = userDto.UserID, FlightID = flight.FlightID,Role = role};
-            flight.Users.Add(userFlight);
-            await _dbContext.SaveChangesAsync();
             var userUpdateRequest = new { Role = role };
-            var userUpdateResponse = await UpdateUserRoleInUserService(userId, userUpdateRequest, jwtToken);
+            var userUpdateResponse = await UpdateUserRoleInUserService(userId, role, jwtToken);
             if (!userUpdateResponse.IsSuccessStatusCode)
                 return false;
+            var userFlight = new UserFlight { UserID = userDto.UserID, FlightID = flight.FlightID, Role = role };
+            flight.Users.Add(userFlight);
+            await _dbContext.SaveChangesAsync();
+
             return true;
         }
-        private async Task<HttpResponseMessage> UpdateUserRoleInUserService(int userId, object userUpdateRequest, string jwtToken)
+        private async Task<HttpResponseMessage> UpdateUserRoleInUserService(int userId, Role? role, string jwtToken)
         {
             var httpClient = _httpClientFactory.CreateClient();
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
+            var res = await httpClient.GetAsync($"https://localhost:44362/api/User/detail/{userId}");
+            var userDetailsJson = await res.Content.ReadAsStringAsync();
+            var userDetails = JsonConvert.DeserializeObject<User>(userDetailsJson);
+            var userUpdateRequest = new
+            {
+                UserID = userId,
+                Role = role,
+                Username = userDetails.Username,
+                Email = userDetails.Email,
+                Password = userDetails.Password,
+                PhoneNumber = userDetails.PhoneNumber
+            };
             var content = new StringContent(JsonConvert.SerializeObject(userUpdateRequest), Encoding.UTF8, "application/json");
             var response = await httpClient.PutAsync($"https://localhost:44362/api/User/edit/{userId}", content);
             return response;

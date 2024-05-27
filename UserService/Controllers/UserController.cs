@@ -80,7 +80,7 @@ namespace UserService.Controllers
         }
 
         [HttpPut("edit/{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, GO")]
         public async Task<IActionResult> UpdateUser(int id, User user)
         {
             try
@@ -95,7 +95,7 @@ namespace UserService.Controllers
         }
 
         [HttpDelete("delete/{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, GO")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             try
@@ -112,7 +112,7 @@ namespace UserService.Controllers
             }
         }
         [HttpGet("all")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, GO")]
         public async Task<IActionResult> GetAllUsers()
         {
             try
@@ -126,7 +126,7 @@ namespace UserService.Controllers
             }
         }
         [HttpGet("detail/{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, GO")]
         public async Task<IActionResult> GetUserDetail(int id)
         {
             try

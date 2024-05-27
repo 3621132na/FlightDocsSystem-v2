@@ -6,6 +6,6 @@ namespace FlightService.Models
     {
         public int UserID { get; set; }
         public int FlightID { get; set; }
-        public string Role { get; set; }
+        public Role Role { get; set; }
     }
 }

@@ -12,5 +12,7 @@
         public int? UpdatedBy { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public bool IsConfirmed { get; set; }
+        public bool CanEdit { get; set; }
+        public string FilePath { get; set; }
     }
 }

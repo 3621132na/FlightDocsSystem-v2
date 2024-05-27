@@ -35,7 +35,7 @@ namespace AirportService.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAirport([FromBody] Airport airport)
+        public async Task<IActionResult> CreateAirport( Airport airport)
         {
             if (!ModelState.IsValid)
             {
@@ -47,7 +47,7 @@ namespace AirportService.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAirport(int id, [FromBody] Airport airport)
+        public async Task<IActionResult> UpdateAirport(int id,  Airport airport)
         {
             if (!ModelState.IsValid)
             {

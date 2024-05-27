@@ -92,6 +92,8 @@ namespace UserService.Services
         }
         public async Task<User> UpdateUserAsync(User user)
         {
+            if (!string.IsNullOrEmpty(user.Password))
+                user.Password = _passwordHasher.HashPassword(user, user.Password);
             _dbContext.Entry(user).State = EntityState.Modified;
             await _dbContext.SaveChangesAsync();
             return user;

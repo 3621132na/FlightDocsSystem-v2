@@ -8,8 +8,8 @@ namespace FlightService.Services
         Task<IEnumerable<Flight>> GetAllFlightsAsync();
         Task<Flight> GetFlightByIdAsync(int flightId);
         Task<Flight> CreateFlightAsync(Flight flight);
-        Task<bool> UpdateFlightAsync(Flight flight);
+        Task<bool> UpdateFlightAsync(Flight flight, string jwtToken);
         Task<bool> DeleteFlightAsync(int flightId);
-        Task<bool> AddUserToFlightAsync(int flightId, int userId,string role, string jwtToken);
+        Task<bool> AddUserToFlightAsync(int flightId, int userId,Role role, string jwtToken);
     }
 }

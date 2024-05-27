@@ -5,6 +5,7 @@
         public DateTime DepartureDate { get; set; }
         public string AircraftType { get; set; }
         public string Status { get; set; }
-        public int TotalFlights { get; set; }
+        public int FlightCount { get; set; }
+        public int TotalUsers { get; set; }
     }
 }
